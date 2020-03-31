@@ -387,6 +387,6 @@ render(taskListElement, createTaskEditTemplate(), `beforeend`);
 
 for (let i = 0; i < TASK_COUNT; i++) {
   render(taskListElement, createTaskTemplate(), `beforeend`);
-};
+}
 
 render(boardElement, createLoadMoreButtonTemplate(), `beforeend`);
