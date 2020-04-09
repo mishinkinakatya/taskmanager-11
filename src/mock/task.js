@@ -1,4 +1,4 @@
-import { COLORS } from "../const.js";
+import {COLORS} from "../const.js";
 
 const DescriptionItems = [
   `Изучить теорию`,
@@ -37,7 +37,7 @@ const getRandomDate = () => {
 };
 
 const generateRepeatingDays = () => {
-  return Object.assign({}, DefaultRepeatingDays, { "mo": Math.random() > 0.5 });
+  return Object.assign({}, DefaultRepeatingDays, {"mo": Math.random() > 0.5});
 };
 
 const generateTask = () => {
@@ -57,4 +57,4 @@ const generateTasks = (count) => {
   return new Array(count).fill(``).map(generateTask);
 };
 
-export { generateTask, generateTasks };
+export {generateTask, generateTasks};

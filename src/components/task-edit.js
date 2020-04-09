@@ -1,5 +1,5 @@
-import { COLORS, DAYS, MONTH_NAME } from "../const.js";
-import { formatTime } from "../utils.js";
+import {COLORS, DAYS, MONTH_NAME} from "../const.js";
+import {formatTime} from "../utils.js";
 
 
 const createColorsMarkup = (colors, currentColor) => {
@@ -42,7 +42,7 @@ const createRepeatingDaysMarkup = (days, repeatingDays) => {
 };
 
 export const createTaskEditTemplate = (task) => {
-  const { description, dueDate, color, repeatingDays } = task;
+  const {description, dueDate, color, repeatingDays} = task;
 
   const isExpired = dueDate instanceof Date && dueDate < Date.now();
   const isDateShowing = !!dueDate;

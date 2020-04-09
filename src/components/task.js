@@ -57,5 +57,5 @@ export const createTaskTemplate = (task) => {
         </div>
       </div>
     </div>
-  </article>`
+  </article>`;
 };
