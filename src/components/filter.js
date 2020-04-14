@@ -5,7 +5,7 @@ const createFilterMarkup = (filter, isChecked) => {
     id="filter__${name}"
     class="filter__input visually-hidden"
     name="filter"
-    ${isChecked ? `checked` : ``}
+    ${isChecked ? `checked` : `disabled`}
   />
   <label for="filter__${name}" class="filter__label">
     ${name} <span class="filter__${name}-count">${count}</span></label
