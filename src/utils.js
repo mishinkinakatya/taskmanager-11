@@ -1,8 +1,3 @@
-export const RenderPosition = {
-  AFTERBEGIN: `afterbegin`,
-  BEFOREEND: `beforeend`
-};
-
 const castTimeFormat = (value) => {
   return value < 10 ? `0${value}` : String(value);
 };
@@ -40,6 +35,11 @@ const render = (container, element, place) => {
       container.append(element);
       break;
   }
+};
+
+export const RenderPosition = {
+  AFTERBEGIN: `afterbegin`,
+  BEFOREEND: `beforeend`
 };
 
 export {formatTime, generateRandomArrayItem, getRandomIntegerNumber, createElement, render};
