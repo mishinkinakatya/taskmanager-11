@@ -8,7 +8,7 @@ export default class LoadMoreButton extends AbstractComponent {
     return createLoadMoreButtonTemplate();
   }
 
-  setCLickHandler(handler) {
+  setClickHandler(handler) {
     this.getElement().addEventListener(`click`, handler);
   }
 }
