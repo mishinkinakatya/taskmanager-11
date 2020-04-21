@@ -94,11 +94,11 @@ export default class BoardController {
         const sortedTasks = getSortedTasks(tasks, this._sortComponent.getSortType(), prevTasksCount, showingTasksCount);
 
         renderTasks(taskListElement, sortedTasks);
-      });
 
-      if (showingTasksCount >= tasks.length) {
-        remove(this._loadMoreButtonComponent);
-      }
+        if (showingTasksCount >= tasks.length) {
+          remove(this._loadMoreButtonComponent);
+        }
+      });
     };
 
     const container = this._container.getElement();
