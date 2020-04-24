@@ -18,7 +18,7 @@ const createColorsMarkup = (colors, currentColor) => {
         ${currentColor === color ? `checked` : ``}
       />
       <label
-        for="color-${color}-${index}"
+        for="color-${color}--${index}"
         class="card__color card__color--${color}"
       >${color}</label
       >`
@@ -111,7 +111,7 @@ const createTaskEditTemplate = (task, options = {}) => {
                 </fieldset>`
       : ``}
               </div>
-            </div>
+
 
             <div class="card__colors-inner">
               <h3 class="card__colors-title">Color</h3>
@@ -120,6 +120,7 @@ const createTaskEditTemplate = (task, options = {}) => {
               </div>
             </div>
           </div>
+        </div>
 
           <div class="card__status-btns">
             <button class="card__save" type="submit" ${isBlockSaveButton ? `disabled` : ``}>save</button>
@@ -158,6 +159,16 @@ export default class TaskEdit extends AbstractSmartComponent {
 
   rerender() {
     super.rerender();
+  }
+
+  reset() {
+    const task = this._task;
+
+    this._isDateShowing = !!task.dueDate;
+    this._isRepeatingTask = Object.values(task.repeatingDays).some(Boolean);
+    this._activeRepeatingDays = Object.assign({}, task.repeatingDays);
+
+    this.rerender();
   }
 
   setSubmitHandler(handler) {
