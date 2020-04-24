@@ -1,5 +1,5 @@
 import LoadMoreButtonComponent from "../components/load-more-button.js";
-import NoTasksComponent from "../components/no-task.js";
+import NoTasksComponent from "../components/no-tasks.js";
 import SortComponent, {SortType} from "../components/sort.js";
 import TaskController from "./task.js";
 import TasksComponent from "../components/tasks.js";
