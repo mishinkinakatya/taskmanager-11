@@ -21,7 +21,7 @@ const createButtonMarkup = (name, isActive = true) => {
  * @param {Object} task Задача
  */
 const createTaskTemplate = (task) => {
-  const {description, dueDate, color, repeatingDays, isArchive} = task;
+  const {description, dueDate, color, repeatingDays} = task;
 
   /** Флаг: Срок задачи истек? */
   const isExpired = dueDate instanceof Date && dueDate < Date.now();
@@ -36,8 +36,7 @@ const createTaskTemplate = (task) => {
   /** Разметка для кнопки Edit */
   const editButton = createButtonMarkup(`edit`);
   /** Разметка для кнопки Archive */
-  const archiveButton = createButtonMarkup(`archive`, !isArchive);
-  // const archiveButton = createButtonMarkup(`archive`, !task.isArchive);
+  const archiveButton = createButtonMarkup(`archive`, !task.isArchive);
   /** Разметка для кнопки Favorites */
   const favoritesButton = createButtonMarkup(`favorites`, !task.isFavorite);
 

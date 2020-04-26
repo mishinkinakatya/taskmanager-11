@@ -12,11 +12,30 @@ const isRepeating = (repeatingDays) => {
 };
 
 /**
+ * Функция для создания перечисления цветов карточки и соответствующих им классов
+ * @param {Array} allColors Цвета, которые могут быть на карточке
+ */
+const createTaskColors = (allColors) => {
+  let colors = {};
+  for (let i = 0; i < COLORS.length; i++) {
+    let color = allColors[i].toUpperCase();
+    colors = Object.assign(colors, {[color]: `color-${COLORS[i]}-${i}`});
+  }
+
+  return colors;
+};
+
+/**
  * Функция для созданя разметки блока с цветами
  * @param {Array} colors Массив доступных цветов
  * @param {String} currentColor Выбранный цвет
  */
 const createColorsMarkup = (colors, currentColor) => {
+  /** Перечисление цветов карточки и соответствующих им классов */
+  const TaskColors = createTaskColors(colors);
+  /** Массив, содержащий все цвета карточки */
+  const taskColors = Object.values(TaskColors);
+
   return colors.map((color, index) => {
     return (
       `<input
@@ -26,6 +45,7 @@ const createColorsMarkup = (colors, currentColor) => {
         name="color"
         value="${color}"
         ${currentColor === color ? `checked` : ``}
+        data-task-color="${taskColors[index]}"
       />
       <label
         for="color-${color}--${index}"
@@ -67,8 +87,8 @@ const createRepeatingDaysMarkup = (days, repeatingDays) => {
  * @param {*} options Опции карточки, которые влияют на перерисовку карточки
  */
 const createTaskEditTemplate = (task, options = {}) => {
-  const {description, dueDate, color} = task;
-  const {isDateShowing, isRepeatingTask, activeRepeatingDays} = options;
+  const {description, dueDate} = task;
+  const {isDateShowing, isRepeatingTask, activeRepeatingDays, activeColor} = options;
 
   /** Флаг: Срок задачи истек? */
   const isExpired = dueDate instanceof Date && dueDate < Date.now();
@@ -86,12 +106,12 @@ const createTaskEditTemplate = (task, options = {}) => {
   const deadlineClass = isExpired ? `card--deadline` : ``;
 
   /** Разметка блока с цветами */
-  const colorsMarkup = createColorsMarkup(COLORS, color);
+  const colorsMarkup = createColorsMarkup(COLORS, activeColor);
   /** Разметка блока с днями недели */
   const repeatingDaysMarkup = createRepeatingDaysMarkup(DAYS, activeRepeatingDays);
 
   return (
-    `<article class="card card--edit card--${color} ${repeatClass} ${deadlineClass}">
+    `<article class="card card--edit card--${activeColor} ${repeatClass} ${deadlineClass}">
       <form class="card__form" method="get">
         <div class="card__inner">
           <div class="card__color-bar">
@@ -177,9 +197,12 @@ export default class TaskEdit extends AbstractSmartComponent {
     this._isRepeatingTask = Object.values(task.repeatingDays).some(Boolean);
     /** Свойство компонента: Объект, содержащий повторяющиеся дни */
     this._activeRepeatingDays = Object.assign({}, task.repeatingDays);
+    /** Свойство компонента: Цвет задачи */
+    this._activeColor = task.color;
     /** Свойство компонента: Обработчик для кнопки Save */
     this._submitHandler = null;
 
+    /** Свойство компонента: Метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites */
     this._subscribeOnEvents();
   }
 
@@ -189,6 +212,7 @@ export default class TaskEdit extends AbstractSmartComponent {
       isDateShowing: this._isDateShowing,
       isRepeatingTask: this._isRepeatingTask,
       activeRepeatingDays: this._activeRepeatingDays,
+      activeColor: this._activeColor,
     });
   }
 
@@ -208,6 +232,7 @@ export default class TaskEdit extends AbstractSmartComponent {
     this._isDateShowing = !!task.dueDate;
     this._isRepeatingTask = Object.values(task.repeatingDays).some(Boolean);
     this._activeRepeatingDays = Object.assign({}, task.repeatingDays);
+    this._activeColor = task.color;
 
     this.rerender();
   }
@@ -246,5 +271,23 @@ export default class TaskEdit extends AbstractSmartComponent {
         this.rerender();
       });
     }
+
+    // Тут нужно доработать обработчик смены цвета, чтобы можно было завязаться на inputб а не label
+    element.querySelector(`.card__colors-wrap`).addEventListener(`click`, (evt) => {
+
+      if (evt.target.tagName !== `INPUT`) {
+        return;
+      }
+
+      const taskColor = evt.target.dataset.taskColor;
+
+      if (this._activeColor === taskColor) {
+        return;
+      }
+
+      this._activeColor = taskColor;
+
+      this.rerender();
+    });
   }
 }
