@@ -16,12 +16,12 @@ const createSortTemplate = () =>
     <a href="#" class="board__filter" data-sort-type="${SortType.DATE_DOWN}">SORT BY DATE down</a>
   </div>`;
 
-/** Контроллер для отрисовки блока с сортировкой */
+/** Компонент: Блок сортировки */
 export default class Sort extends AbstractComponent {
   constructor() {
     super();
 
-    /** Свойство контроллера: Текущий тип сортировки */
+    /** Свойство компонента: Текущий тип сортировки */
     this._currentSortType = SortType.DEFAULT;
   }
 

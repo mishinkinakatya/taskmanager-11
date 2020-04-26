@@ -56,17 +56,18 @@ const getSortedTasks = (tasks, sortType, from, to) => {
   return sortedTasks.slice(from, to);
 };
 
-/** Контроллер для отрисовки доски */
+/** Контроллер: Доска задач */
 export default class BoardController {
   /**
-   * Конструктор контроллера доски
-   * @param {*} container Компронент, внутри которого будет доска
+   * Конструктор контроллера "Доска задач"
+   * @param {*} container Компонент, внутри которого будет доска
    */
   constructor(container) {
+    /** Свойство контроллера: Компонент, внутри которого будет текущая доска */
     this._container = container;
     /** Свойство контроллера: Массив всех задач */
     this._tasks = [];
-    /** Свойство контроллера: Массив контроллеров отображенных задач*/
+    /** Свойство контроллера: Массив контроллеров отображенных задач (наблюдателей) */
     this._showedTaskControllers = [];
     /** Свойство контроллера: Количество отображаемых задач */
     this._showingTasksCount = SHOWING_TASKS_COUNT_ON_START;
@@ -154,7 +155,8 @@ export default class BoardController {
    * @param {*} oldData Старые данные
    * @param {*} newData Новые данные
    */
-  _onDataChange(taskController, oldData, newData) {
+  // _onDataChange(taskController, oldData, newData) {
+  _onDataChange(oldData, newData) {
     /** Индекс задачи, в которой произошли изменения */
     const index = this._tasks.findIndex((it) => it === oldData);
 
@@ -164,7 +166,8 @@ export default class BoardController {
 
     this._tasks = [].concat(this._tasks.slice(0, index), newData, this._tasks.slice(index + 1));
 
-    taskController.render(this._tasks[index]);
+    const indexOfController = this._showedTaskControllers.findIndex((it) => it === this._tasks[index]);
+    indexOfController.render(this._tasks[index]);
   }
 
   /** Приватный метод, который уведомляет все контроллеры задач, что они должны вернуться в дефолтный режим  */
