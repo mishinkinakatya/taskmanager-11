@@ -21,7 +21,7 @@ const createButtonMarkup = (name, isActive = true) => {
  * @param {Object} task Задача
  */
 const createTaskTemplate = (task) => {
-  const {description, dueDate, color, repeatingDays} = task;
+  const {description, dueDate, color, repeatingDays, isArchive, isFavorite} = task;
 
   /** Флаг: Срок задачи истек? */
   const isExpired = dueDate instanceof Date && dueDate < Date.now();
@@ -36,9 +36,9 @@ const createTaskTemplate = (task) => {
   /** Разметка для кнопки Edit */
   const editButton = createButtonMarkup(`edit`);
   /** Разметка для кнопки Archive */
-  const archiveButton = createButtonMarkup(`archive`, !task.isArchive);
+  const archiveButton = createButtonMarkup(`archive`, !isArchive);
   /** Разметка для кнопки Favorites */
-  const favoritesButton = createButtonMarkup(`favorites`, !task.isFavorite);
+  const favoritesButton = createButtonMarkup(`favorites`, !isFavorite);
 
   /** Если задача повторяющаяся - добавляет в разметку соответствующий класс  */
   const repeatClass = Object.values(repeatingDays).some(Boolean) ? `card--repeat` : ``;

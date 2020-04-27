@@ -155,8 +155,7 @@ export default class BoardController {
    * @param {*} oldData Старые данные
    * @param {*} newData Новые данные
    */
-  // _onDataChange(taskController, oldData, newData) {
-  _onDataChange(oldData, newData) {
+  _onDataChange(taskController, oldData, newData) {
     /** Индекс задачи, в которой произошли изменения */
     const index = this._tasks.findIndex((it) => it === oldData);
 
@@ -166,8 +165,7 @@ export default class BoardController {
 
     this._tasks = [].concat(this._tasks.slice(0, index), newData, this._tasks.slice(index + 1));
 
-    const indexOfController = this._showedTaskControllers.findIndex((it) => it === this._tasks[index]);
-    indexOfController.render(this._tasks[index]);
+    taskController.render(this._tasks[index]);
   }
 
   /** Приватный метод, который уведомляет все контроллеры задач, что они должны вернуться в дефолтный режим  */

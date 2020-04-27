@@ -12,29 +12,11 @@ const isRepeating = (repeatingDays) => {
 };
 
 /**
- * Функция для создания перечисления цветов карточки и соответствующих им классов
- * @param {Array} allColors Цвета, которые могут быть на карточке
- */
-const createTaskColors = (allColors) => {
-  let colors = {};
-  for (let i = 0; i < COLORS.length; i++) {
-    let color = allColors[i].toUpperCase();
-    colors = Object.assign(colors, {[color]: `color-${COLORS[i]}-${i}`});
-  }
-
-  return colors;
-};
-
-/**
  * Функция для созданя разметки блока с цветами
  * @param {Array} colors Массив доступных цветов
  * @param {String} currentColor Выбранный цвет
  */
 const createColorsMarkup = (colors, currentColor) => {
-  /** Перечисление цветов карточки и соответствующих им классов */
-  const TaskColors = createTaskColors(colors);
-  /** Массив, содержащий все цвета карточки */
-  const taskColors = Object.values(TaskColors);
 
   return colors.map((color, index) => {
     return (
@@ -45,7 +27,6 @@ const createColorsMarkup = (colors, currentColor) => {
         name="color"
         value="${color}"
         ${currentColor === color ? `checked` : ``}
-        data-task-color="${taskColors[index]}"
       />
       <label
         for="color-${color}--${index}"
@@ -272,15 +253,13 @@ export default class TaskEdit extends AbstractSmartComponent {
       });
     }
 
-    // Тут нужно доработать обработчик смены цвета, чтобы можно было завязаться на inputб а не label
     element.querySelector(`.card__colors-wrap`).addEventListener(`click`, (evt) => {
 
-      if (evt.target.tagName !== `INPUT`) {
+      if (evt.target.tagName !== `LABEL`) {
         return;
       }
 
-      const taskColor = evt.target.dataset.taskColor;
-
+      const taskColor = evt.target.innerHTML;
       if (this._activeColor === taskColor) {
         return;
       }
