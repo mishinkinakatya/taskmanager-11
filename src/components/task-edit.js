@@ -1,9 +1,23 @@
-import AbstractComponent from "./abstract-component.js";
-import {COLORS, DAYS, MONTH_NAME} from "../const.js";
+/* eslint-disable valid-jsdoc */
+import AbstractSmartComponent from "./abstract-smart-component.js";
+import {COLORS, DAYS, MONTH_NAMES} from "../const.js";
 import {formatTime} from "../utils/common.js";
 
+/**
+ * Флаг: Выбран хотя бы один день для повторения?
+ * @param {Array} repeatingDays Массив дней
+ */
+const isRepeating = (repeatingDays) => {
+  return Object.values(repeatingDays).some(Boolean);
+};
 
+/**
+ * Функция для созданя разметки блока с цветами
+ * @param {Array} colors Массив доступных цветов
+ * @param {String} currentColor Выбранный цвет
+ */
 const createColorsMarkup = (colors, currentColor) => {
+
   return colors.map((color, index) => {
     return (
       `<input
@@ -15,7 +29,7 @@ const createColorsMarkup = (colors, currentColor) => {
         ${currentColor === color ? `checked` : ``}
       />
       <label
-        for="color-${color}-${index}"
+        for="color-${color}--${index}"
         class="card__color card__color--${color}"
       >${color}</label
       >`
@@ -23,8 +37,14 @@ const createColorsMarkup = (colors, currentColor) => {
   }).join(`\n`);
 };
 
+/**
+ * Функция для создания разметки блока с днями недели
+ * @param {Array} days Массив с днями недели
+ * @param {*} repeatingDays Массив с днями, по которым задача повторяется
+ */
 const createRepeatingDaysMarkup = (days, repeatingDays) => {
   return days.map((day, index) => {
+    /** Флаг: День является повторяющимся? */
     const isChecked = repeatingDays[day];
     return (
       `<input
@@ -42,24 +62,37 @@ const createRepeatingDaysMarkup = (days, repeatingDays) => {
   }).join(`\n`);
 };
 
-const createTaskEditTemplate = (task) => {
-  const {description, dueDate, color, repeatingDays} = task;
+/**
+ * Функция для создания разметки карточки редактирования
+ * @param {*} task Объект, содержащий свойства карточки одной задачи
+ * @param {*} options Опции карточки, которые влияют на перерисовку карточки
+ */
+const createTaskEditTemplate = (task, options = {}) => {
+  const {description, dueDate} = task;
+  const {isDateShowing, isRepeatingTask, activeRepeatingDays, activeColor} = options;
 
+  /** Флаг: Срок задачи истек? */
   const isExpired = dueDate instanceof Date && dueDate < Date.now();
-  const isDateShowing = !!dueDate;
+  /** Флаг: Кнопку Save блокировать? */
+  const isBlockSaveButton = (isDateShowing && isRepeatingTask) || (isRepeatingTask && !isRepeating(activeRepeatingDays));
 
-  const date = isDateShowing ? `${dueDate.getDate()} ${MONTH_NAME[dueDate.getMonth()]}` : ``;
-  const time = isDateShowing ? formatTime(dueDate) : ``;
+  /** Дата выполнения задачи */
+  const date = (isDateShowing && dueDate) ? `${dueDate.getDate()} ${MONTH_NAMES[dueDate.getMonth()]}` : ``;
+  /** Время выполнения задачи */
+  const time = (isDateShowing && dueDate) ? formatTime(dueDate) : ``;
 
-  const isRepeatingTask = Object.values(repeatingDays).some(Boolean);
+  /** Если задача повторяющаяся - добавляет в разметку соответствующий класс  */
   const repeatClass = isRepeatingTask ? `card--repeat` : ``;
+  /** Если срок задачи истек - добавляет в разметку соответствующий класс  */
   const deadlineClass = isExpired ? `card--deadline` : ``;
 
-  const colorsMarkup = createColorsMarkup(COLORS, color);
-  const repeatingDaysMarkup = createRepeatingDaysMarkup(DAYS, repeatingDays);
+  /** Разметка блока с цветами */
+  const colorsMarkup = createColorsMarkup(COLORS, activeColor);
+  /** Разметка блока с днями недели */
+  const repeatingDaysMarkup = createRepeatingDaysMarkup(DAYS, activeRepeatingDays);
 
   return (
-    `<article class="card card--edit card--${color} ${repeatClass} ${deadlineClass}">
+    `<article class="card card--edit card--${activeColor} ${repeatClass} ${deadlineClass}">
       <form class="card__form" method="get">
         <div class="card__inner">
           <div class="card__color-bar">
@@ -108,7 +141,7 @@ const createTaskEditTemplate = (task) => {
                 </fieldset>`
       : ``}
               </div>
-            </div>
+
 
             <div class="card__colors-inner">
               <h3 class="card__colors-title">Color</h3>
@@ -117,9 +150,10 @@ const createTaskEditTemplate = (task) => {
               </div>
             </div>
           </div>
+        </div>
 
           <div class="card__status-btns">
-            <button class="card__save" type="submit">save</button>
+            <button class="card__save" type="submit" ${isBlockSaveButton ? `disabled` : ``}>save</button>
             <button class="card__delete" type="button">delete</button>
           </div>
         </div>
@@ -128,17 +162,111 @@ const createTaskEditTemplate = (task) => {
   );
 };
 
-export default class TaskEdit extends AbstractComponent {
+/** Компонент: Карточка редактирования */
+export default class TaskEdit extends AbstractSmartComponent {
+  /**
+   * Конструктор карточки редактирования
+   * @param {*} task Задача
+   */
   constructor(task) {
     super();
+    /** Свойство компонента: Текущая задача */
     this._task = task;
+    /** Свойство компонента: Флаг: У задачи есть дедлайн? */
+    this._isDateShowing = !!task.dueDate;
+    /** Свойство компонента: Флаг: Задача повторяется? */
+    this._isRepeatingTask = Object.values(task.repeatingDays).some(Boolean);
+    /** Свойство компонента: Объект, содержащий повторяющиеся дни */
+    this._activeRepeatingDays = Object.assign({}, task.repeatingDays);
+    /** Свойство компонента: Цвет задачи */
+    this._activeColor = task.color;
+    /** Свойство компонента: Обработчик для кнопки Save */
+    this._submitHandler = null;
+
+    /** Свойство компонента: Метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites */
+    this._subscribeOnEvents();
   }
 
+  /** Метод, который возвращает разметку карточки редактирования */
   getTemplate() {
-    return createTaskEditTemplate(this._task);
+    return createTaskEditTemplate(this._task, {
+      isDateShowing: this._isDateShowing,
+      isRepeatingTask: this._isRepeatingTask,
+      activeRepeatingDays: this._activeRepeatingDays,
+      activeColor: this._activeColor,
+    });
   }
 
+  recoveryListeners() {
+    this.setSubmitHandler(this._submitHandler);
+    this._subscribeOnEvents();
+  }
+
+  rerender() {
+    super.rerender();
+  }
+
+  /** Сбросить изменения в карточке */
+  reset() {
+    const task = this._task;
+
+    this._isDateShowing = !!task.dueDate;
+    this._isRepeatingTask = Object.values(task.repeatingDays).some(Boolean);
+    this._activeRepeatingDays = Object.assign({}, task.repeatingDays);
+    this._activeColor = task.color;
+
+    this.rerender();
+  }
+
+  /**
+   * Метод установки обработчика для кнопки Save
+   * @param {*} handler Обработчик для кнопки Save
+   */
   setSubmitHandler(handler) {
     this.getElement().querySelector(`form`).addEventListener(`submit`, handler);
+
+    this._submitHandler = handler;
+  }
+
+  /** Приватный метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites */
+  _subscribeOnEvents() {
+    const element = this.getElement();
+
+    element.querySelector(`.card__date-deadline-toggle`).addEventListener(`click`, () => {
+      this._isDateShowing = !this._isDateShowing;
+
+      this.rerender();
+    });
+
+    element.querySelector(`.card__repeat-toggle`).addEventListener(`click`, () => {
+      this._isRepeatingTask = !this._isRepeatingTask;
+
+      this.rerender();
+    });
+
+    const repeatDays = element.querySelector(`.card__repeat-days`);
+    if (repeatDays) {
+      repeatDays.addEventListener(`change`, (evt) => {
+        this._activeRepeatingDays[evt.target.value] = evt.target.checked;
+
+        this.rerender();
+      });
+    }
+
+    element.querySelector(`.card__colors-wrap`).addEventListener(`click`, (evt) => {
+
+      if (evt.target.tagName !== `LABEL`) {
+        return;
+      }
+
+      const taskColor = evt.target.innerHTML;
+      if (this._activeColor === taskColor) {
+        return;
+      }
+
+      this._activeColor = taskColor;
+
+      this.rerender();
+    });
   }
 }
