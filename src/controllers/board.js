@@ -61,12 +61,13 @@ export default class BoardController {
   /**
    * Конструктор контроллера "Доска задач"
    * @param {*} container Компонент, внутри которого будет доска
+   * @param {*} taskModel Модель задач
    */
-  constructor(container) {
+  constructor(container, taskModel) {
     /** Свойство контроллера: Компонент, внутри которого будет текущая доска */
     this._container = container;
-    /** Свойство контроллера: Массив всех задач */
-    this._tasks = [];
+    /** Свойство контроллера: Модель задач */
+    this._tasksModel = taskModel;
     /** Свойство контроллера: Массив контроллеров отображенных задач (наблюдателей) */
     this._showedTaskControllers = [];
     /** Свойство контроллера: Количество отображаемых задач */
@@ -91,16 +92,15 @@ export default class BoardController {
     this._sortComponent.setSortTypeChangeHandler(this._onSortTypeChange);
   }
 
-  /**
-   * Метод для рендеринга доски
-   * @param {Array} tasks Массив задач
-   */
-  render(tasks) {
-    this._tasks = tasks;
+  /** Метод для рендеринга доски */
+  render() {
     /** Элемент, внутри которого будет рендериться доска */
     const container = this._container.getElement();
+
+    /** Массив всех задач. полученный из модели */
+    const tasks = this._tasksModel.getTasks();
     /** Флаг для проверки того, что есть НЕ архивные задачи */
-    const isAllTasksArchived = this._tasks.every((task) => task.isArchive);
+    const isAllTasksArchived = tasks.every((task) => task.isArchive);
 
     if (isAllTasksArchived) {
       render(container, this._noTasksComponent, RenderPosition.BEFOREEND);
@@ -113,15 +113,17 @@ export default class BoardController {
     /** Элемент, внутри которого будут рендериться задачи */
     const taskListElement = this._tasksComponent.getElement();
 
-    const newTasks = renderTasks(taskListElement, this._tasks.slice(0, this._showingTasksCount), this._onDataChange, this._onViewChange);
+    const newTasks = renderTasks(taskListElement, tasks, this._onDataChange, this._onViewChange);
     this._showedTaskControllers = this._showedTaskControllers.concat(newTasks);
 
-    this._renderLoadMoreButton();
+    this._showingTasksCount = this._showedTaskControllers.length;
   }
 
   /** Приватный метод, для отрисовки кнопки LoadMore*/
   _renderLoadMoreButton() {
-    if (this._showingTasksCount >= this._tasks.length) {
+    remove(this._loadMoreButtonComponent);
+
+    if (this._showingTasksCount >= this._tasksModel.getTasks().length) {
       return;
     }
 
@@ -133,19 +135,17 @@ export default class BoardController {
     this._loadMoreButtonComponent.setClickHandler(() => {
       /** Количество показанных задач */
       const prevTasksCount = this._showingTasksCount;
+      /** Массив всех задач. полученный из модели */
+      const tasks = this._tasksModel.getTasks();
       /** Элемент доски со всеми задачами */
       const taskListElement = this._tasksComponent.getElement();
       this._showingTasksCount = this._showingTasksCount + SHOWING_TASKS_COUNT_BY_BUTTON;
       /** Массив отсортированных задач, которые появятся при клике на LoadMore */
-      const sortedTasks = getSortedTasks(this._tasks, this._sortComponent.getSortType(), prevTasksCount, this._showingTasksCount);
+      const sortedTasks = getSortedTasks(tasks, this._sortComponent.getSortType(), prevTasksCount, this._showingTasksCount);
       /** Массив новых отрендеренных сортированных задач */
       const newTasks = renderTasks(taskListElement, sortedTasks, this._onDataChange, this._onViewChange);
 
       this._showedTaskControllers = this._showedTaskControllers.concat(newTasks);
-
-      if (this._showingTasksCount >= this._tasks.length) {
-        remove(this._loadMoreButtonComponent);
-      }
     });
   }
 
@@ -156,16 +156,12 @@ export default class BoardController {
    * @param {*} newData Новые данные
    */
   _onDataChange(taskController, oldData, newData) {
-    /** Индекс задачи, в которой произошли изменения */
-    const index = this._tasks.findIndex((it) => it === oldData);
+    /** Флаг: Задача изменилась? */
+    const isSuccess = this._tasksModel.updateTask(oldData.id, newData);
 
-    if (index === -1) {
-      return;
+    if (isSuccess) {
+      taskController.render(newData);
     }
-
-    this._tasks = [].concat(this._tasks.slice(0, index), newData, this._tasks.slice(index + 1));
-
-    taskController.render(this._tasks[index]);
   }
 
   /** Приватный метод, который уведомляет все контроллеры задач, что они должны вернуться в дефолтный режим  */
@@ -179,8 +175,10 @@ export default class BoardController {
    */
   _onSortTypeChange(sortType) {
     this._showingTasksCount = SHOWING_TASKS_COUNT_ON_START;
+    /** Массив всех задач. полученный из модели */
+    const tasks = this._tasksModel.getTasks();
     /** Массив отсортированных задач */
-    const sortedTasks = getSortedTasks(this._tasks, sortType, 0, this._showingTasksCount);
+    const sortedTasks = getSortedTasks(tasks, sortType, 0, this._showingTasksCount);
     /** Элемент доски со всеми задачами */
     const taskListElement = this._tasksComponent.getElement();
 

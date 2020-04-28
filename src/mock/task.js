@@ -40,6 +40,8 @@ const generateTask = () => {
   const dueDate = Math.random() > 0.5 ? null : getRandomDate();
 
   return {
+    /** id задачи */
+    id: String(new Date() + Math.random()),
     /** Описание задачи */
     description: generateRandomArrayItem(DESCRIPTION_ITEMS),
     /** Дедлайн: дата и время */
