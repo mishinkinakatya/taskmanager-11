@@ -19,4 +19,21 @@ const getRandomIntegerNumber = (min, max) => {
   return min + Math.floor(Math.random() * (max - min));
 };
 
-export {formatTime, generateRandomArrayItem, getRandomIntegerNumber};
+const isRepeating = (repeatingDays) => {
+  return Object.values(repeatingDays).some(Boolean);
+};
+
+const isOverdueDate = (dueDate, date) => {
+  return dueDate < date && !isOneDay(date, dueDate);
+};
+
+const isOneDay = (dateA, dateB) => {
+  const a = Date.parse(dateA);
+  const b = Date.parse(dateB);
+
+  const diff = b - a;
+
+  return diff === 0 && dateA.getDate() === dateB.getDate();
+};
+
+export {formatTime, generateRandomArrayItem, getRandomIntegerNumber, isRepeating, isOverdueDate, isOneDay};

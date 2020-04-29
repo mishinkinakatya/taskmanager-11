@@ -110,6 +110,17 @@ export default class BoardController {
     render(container, this._sortComponent, RenderPosition.BEFOREEND);
     render(container, this._tasksComponent, RenderPosition.BEFOREEND);
 
+    this._renderTasks(tasks.slice(0, this._showingTasksCount));
+
+    this._renderLoadMoreButton();
+
+  }
+
+  /**
+   * Приватный метод для рендеринга задач
+   * @param {Array} tasks Массив задач
+   */
+  _renderTasks(tasks) {
     /** Элемент, внутри которого будут рендериться задачи */
     const taskListElement = this._tasksComponent.getElement();
 
@@ -140,6 +151,7 @@ export default class BoardController {
       /** Элемент доски со всеми задачами */
       const taskListElement = this._tasksComponent.getElement();
       this._showingTasksCount = this._showingTasksCount + SHOWING_TASKS_COUNT_BY_BUTTON;
+
       /** Массив отсортированных задач, которые появятся при клике на LoadMore */
       const sortedTasks = getSortedTasks(tasks, this._sortComponent.getSortType(), prevTasksCount, this._showingTasksCount);
       /** Массив новых отрендеренных сортированных задач */
