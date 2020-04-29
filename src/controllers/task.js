@@ -1,6 +1,6 @@
 import TaskComponent from "../components/task.js";
 import TaskEditComponent from "../components/task-edit.js";
-import {render, replace, RenderPosition} from "../utils/render.js";
+import {render, replace, RenderPosition, remove} from "../utils/render.js";
 
 /** Режим карточки */
 const Mode = {
@@ -84,6 +84,13 @@ export default class TaskController {
     if (this._mode !== Mode.DEFAULT) {
       this._replaceEditToTask();
     }
+  }
+
+  /** Метод, который визуально удаляет все контроллеры задач */
+  destroy() {
+    remove(this._taskEditComponent);
+    remove(this._taskComponent);
+    document.removeEventListener(`keydown`, this._onEscKeyDown);
   }
 
   /** Приватный метод для замены карточки задачи на карточку редактирования */

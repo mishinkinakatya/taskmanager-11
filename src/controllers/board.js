@@ -87,9 +87,13 @@ export default class BoardController {
     this._onSortTypeChange = this._onSortTypeChange.bind(this);
     /** Свойство контроллера: метод, который уведомляет все контроллеры задач, что они должны вернуться в дефолтный режим в контексте текущего контроллера доски */
     this._onViewChange = this._onViewChange.bind(this);
+    /** Свойство контроллера: метод, который уведомляет все контроллеры задач, что изменился фильтр в контексте текущего контроллера доски */
+    this._onFilterChange = this._onFilterChange.bind(this);
 
     /** Добавление обработчика на изменение типа сортировки */
     this._sortComponent.setSortTypeChangeHandler(this._onSortTypeChange);
+    /** Добавление обработчика на изменение типа фильтрации */
+    this._tasksModel.setFilterChangeHandler(this._onFilterChange);
   }
 
   /** Метод для рендеринга доски */
@@ -114,6 +118,12 @@ export default class BoardController {
 
     this._renderLoadMoreButton();
 
+  }
+
+  /** Приватный метод, который удаляет текущие задачи */
+  _removeTasks() {
+    this._showedTaskControllers.forEach((taskController) => taskController.destroy());
+    this._showedTaskControllers = [];
   }
 
   /**
@@ -162,6 +172,16 @@ export default class BoardController {
   }
 
   /**
+   * Обновить доску при фильтрации
+   * @param {Number} count количество задач, сколько нужно отрисовать
+   */
+  _updateTasks(count) {
+    this._removeTasks();
+    this._renderTasks(this._tasksModel.getTasks().slice(0, count));
+    this._renderLoadMoreButton();
+  }
+
+  /**
    * Приватный метод, который изменяет данные и перерисовывает компонент
    * @param {*} taskController Контроллер задачи
    * @param {*} oldData Старые данные
@@ -201,5 +221,11 @@ export default class BoardController {
     this._showedTaskControllers = newTasks;
 
     this._renderLoadMoreButton();
+  }
+
+  /** Приватный метод, который перерисовывает задачи при изменении типа фильтрации */
+  _onFilterChange() {
+    this._showingTasksCount = SHOWING_TASKS_COUNT_ON_START;
+    this._updateTasks(this._showingTasksCount);
   }
 }

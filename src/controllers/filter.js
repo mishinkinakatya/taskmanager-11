@@ -1,7 +1,7 @@
-import FilterComponent from "./components/filter.js";
+import FilterComponent from "../components/filter.js";
 import {FilterType} from "../const.js";
 import {render, replace, RenderPosition} from "../utils/render.js";
-import {getTasksByFilter} from "../utils/filter.js";
+import {getTasksByFilter} from "../utils/fillter.js";
 
 /** Контроллер: Фильтры */
 export default class FilterController {
@@ -35,7 +35,7 @@ export default class FilterController {
     /** Элемент, внутри которого будет рендериться блок с фильтрами */
     const container = this._container;
     /** Массив всех задач. полученный из модели */
-    const allTasks = this._taskModel.getTasks();
+    const allTasks = this._taskModel.getTasksAll();
 
     const filters = Object.values(FilterType).map((filterType) => {
       return {

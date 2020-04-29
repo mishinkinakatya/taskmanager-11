@@ -59,7 +59,7 @@ const getTasksInOneDay = (tasks, date) => {
 };
 
 /**
- * Функция для получения задач по фильтру
+ * Функция для получения задач по выбранному фильтру
  * @param {Array} tasks Массив задач
  * @param {String} filterType Тип фильтра
  */

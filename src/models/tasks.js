@@ -1,17 +1,29 @@
 /* eslint-disable valid-jsdoc */
+import {getTasksByFilter} from "../utils/fillter.js";
+import {FilterType} from "../const.js";
+
 /** Модель: Задачи */
 export default class Tasks {
   /** Конструктор модели "Задача" */
   constructor() {
     /** Свойство модели: Массив всех задач */
     this._tasks = [];
+    /** Свойство модели: Выбранный фильтр */
+    this._activeFilterType = FilterType.ALL;
 
     /** Свойство модели: массив с наблюдателями */
     this._dataChangeHandlers = [];
+    /** Свойство модели: массив с наблюдателями за изменениями фильтра */
+    this._filterChangeHandlers = [];
+  }
+
+  /** Метод для получения отфильтрованных задач */
+  getTasks() {
+    return getTasksByFilter(this._tasks, this._activeFilterType);
   }
 
   /** Метод для получения всех задач */
-  getTasks() {
+  getTasksAll() {
     return this._tasks;
   }
 
@@ -22,6 +34,15 @@ export default class Tasks {
   setTasks(tasks) {
     this._tasks = Array.from(tasks);
     this._callHandlers(this._dataChangeHandlers);
+  }
+
+  /**
+   * Метод, который позволит подписываться на изменение фильтра
+   * @param {String} FilterType Тип фильтра
+   */
+  setFilter(filterType) {
+    this._activeFilterType = filterType;
+    this._callHandlers(this._filterChangeHandlers);
   }
 
   /**
@@ -42,6 +63,14 @@ export default class Tasks {
     this._callHandlers(this._dataChangeHandlers);
 
     return true;
+  }
+
+  /**
+   * Метод добавляющий колбэки, которые будут вызывать модель, если изменился фильтр
+   * @param {*} handler Колбэк
+   */
+  setFilterChangeHandler(handler) {
+    this._filterChangeHandlers.push(handler);
   }
 
   /**
