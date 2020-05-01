@@ -1,4 +1,11 @@
+/* eslint-disable valid-jsdoc */
 import AbstractComponent from "./abstract-component.js";
+
+export const MenuItem = {
+  NEW_TASK: `control__new-task`,
+  STATISTIC: `control__statistic`,
+  TASKS: `control__task`,
+};
 
 const createSiteMenuTemplate = () =>
   `<section class="control__btn-wrap">
@@ -30,8 +37,38 @@ const createSiteMenuTemplate = () =>
     >
   </section>`;
 
+/** Компонент: Меню */
 export default class SiteMenu extends AbstractComponent {
+  /** Метод, который возвращает разметку строки Меню */
   getTemplate() {
     return createSiteMenuTemplate();
+  }
+
+  /**
+   * Метод, который делает пункт меню активным
+   * @param {String} menuItem id пункта меню
+   */
+  setActiveItem(menuItem) {
+    const item = this.getElement().querySelector(`#${menuItem}`);
+
+    if (item) {
+      item.checked = true;
+    }
+  }
+
+  /**
+   * Метод, который устанавливает обработчик на изменение выбранного пункта меню
+   * @param {*} handler Колбэк, который будет выполнен на выбранном пункте меню
+   */
+  setOnChange(handler) {
+    this.getElement().addEventListener(`change`, (evt) => {
+      if (evt.target.tagName !== `INPUT`) {
+        return;
+      }
+
+      const menuItem = evt.target.id;
+
+      handler(menuItem);
+    });
   }
 }

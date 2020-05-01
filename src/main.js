@@ -1,7 +1,7 @@
 import BoardComponent from "./components/board.js";
 import BoardController from "./controllers/board.js";
 import FilterController from "./controllers/filter.js";
-import SiteMenuComponent from "./components/site-menu.js";
+import SiteMenuComponent, {MenuItem} from "./components/site-menu.js";
 import TasksModel from "./models/tasks.js";
 import {generateTasks} from "./mock/task.js";
 import {render, RenderPosition} from "./utils/render.js";
@@ -14,7 +14,9 @@ const siteMainElement = document.querySelector(`.main`);
 
 /** Меню сайта */
 const siteHeaderElement = siteMainElement.querySelector(`.main__control`);
-render(siteHeaderElement, new SiteMenuComponent(), RenderPosition.BEFOREEND);
+/** Инстанс компонента "Меню" */
+const siteMenuComponent = new SiteMenuComponent();
+render(siteHeaderElement, siteMenuComponent, RenderPosition.BEFOREEND);
 
 /** Все задачи, которые генерируем (потом будут приходить с сервера) */
 const tasks = generateTasks(TASK_COUNT);
@@ -32,4 +34,13 @@ render(siteMainElement, boardComponent, RenderPosition.BEFOREEND);
 
 /** Контроллер доски */
 const boardController = new BoardController(boardComponent, tasksModel);
-boardController.render(tasks);
+boardController.render();
+
+siteMenuComponent.setOnChange((menuItem) => {
+  switch (menuItem) {
+    case MenuItem.NEW_TASK:
+      siteMenuComponent.setActiveItem(MenuItem.TASKS);
+      boardController.createTask();
+      break;
+  }
+});

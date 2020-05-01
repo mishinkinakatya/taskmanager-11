@@ -46,6 +46,26 @@ export default class Tasks {
   }
 
   /**
+   * Метод для удаления одной задачи из модели
+   * @param {String} id id задачи
+   */
+  removeTask(id) {
+    /** Индекс задачи, которую нужно удалить */
+    const index = this._tasks.findIndex((it) => it.id === id);
+
+    if (index === -1) {
+      return false;
+    }
+
+    this._tasks = [].concat(this._tasks.slice(0, index), this._tasks.slice(index + 1));
+
+    this._callHandlers(this._dataChangeHandlers);
+
+    return true;
+  }
+
+
+  /**
    * Метод для обновления одной задачи в модели
    * @param {String} id id "старой задачи"
    * @param {Object} task новая задача
@@ -63,6 +83,15 @@ export default class Tasks {
     this._callHandlers(this._dataChangeHandlers);
 
     return true;
+  }
+
+  /**
+ * Метод для добавления одной задачи в модель
+ * @param {String} task задача
+ */
+  addTask(task) {
+    this._tasks = [].concat(task, this._tasks);
+    this._callHandlers(this._dataChangeHandlers);
   }
 
   /**

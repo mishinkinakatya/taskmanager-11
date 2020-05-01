@@ -3,7 +3,7 @@
 import LoadMoreButtonComponent from "../components/load-more-button.js";
 import NoTasksComponent from "../components/no-tasks.js";
 import SortComponent, {SortType} from "../components/sort.js";
-import TaskController from "./task.js";
+import TaskController, {Mode as TaskControllerMode, EmptyTask} from "./task.js";
 import TasksComponent from "../components/tasks.js";
 import {remove, render, RenderPosition} from "../utils/render.js";
 
@@ -24,7 +24,7 @@ const renderTasks = (taskListElement, tasks, onDataChange, onViewChange) => {
   return tasks.map((task) => {
     const taskController = new TaskController(taskListElement, onDataChange, onViewChange);
 
-    taskController.render(task);
+    taskController.render(task, TaskControllerMode.DEFAULT);
 
     return taskController;
   });
@@ -80,6 +80,8 @@ export default class BoardController {
     this._tasksComponent = new TasksComponent();
     /** Свойство контроллера: Компонент доски LoadMore */
     this._loadMoreButtonComponent = new LoadMoreButtonComponent();
+    /** Свойство контроллера: Форма создания задачи */
+    this._creatingTask = null;
 
     /** Свойство контроллера: метод изменения данных и перерисовки компонентов в контексте текущего контроллера доски */
     this._onDataChange = this._onDataChange.bind(this);
@@ -119,7 +121,16 @@ export default class BoardController {
     this._renderTasks(tasks.slice(0, this._showingTasksCount));
 
     this._renderLoadMoreButton();
+  }
+  /** Метод для создания задачи */
+  createTask() {
+    if (this._creatingTask) {
+      return;
+    }
 
+    const taskListElement = this._tasksComponent.getElement();
+    this._creatingTask = new TaskController(taskListElement, this._onDataChange, this._onViewChange);
+    this._creatingTask.render(EmptyTask, TaskControllerMode.ADDING);
   }
 
   /** Приватный метод, который удаляет текущие задачи */
@@ -193,11 +204,38 @@ export default class BoardController {
    * @param {*} newData Новые данные
    */
   _onDataChange(taskController, oldData, newData) {
-    /** Флаг: Задача изменилась? */
-    const isSuccess = this._tasksModel.updateTask(oldData.id, newData);
+    if (oldData === EmptyTask) {
+      // Добавление задачи
+      this._creatingTask = null;
+      if (newData === null) {
+        taskController.destroy();
+        this._updateTasks(this._showingTasksCount);
+      } else {
+        this._tasksModel.addTask(newData);
+        taskController.render(newData, TaskControllerMode.DEFAULT);
 
-    if (isSuccess) {
-      taskController.render(newData);
+        if (this._showingTasksCount % SHOWING_TASKS_COUNT_BY_BUTTON === 0) {
+          const destroyedTask = this._showedTaskControllers.pop();
+          destroyedTask.destroy();
+        }
+
+        this._showedTaskControllers = [].concat(taskController, this._showedTaskControllers);
+        this._showingTasksCount = this._showedTaskControllers.length;
+
+        this._renderLoadMoreButton();
+      }
+    } else if (newData === null) {
+      // Удаление задачи
+      this._tasksModel.removeTask(oldData.id);
+      this._updateTasks(this._showingTasksCount);
+    } else {
+      // Обновление задачи
+      /** Флаг: Задача изменилась? */
+      const isSuccess = this._tasksModel.updateTask(oldData.id, newData);
+
+      if (isSuccess) {
+        taskController.render(newData, TaskControllerMode.DEFAULT);
+      }
     }
   }
 
