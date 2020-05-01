@@ -1,4 +1,12 @@
-export const COLORS = [`black`, `yellow`, `blue`, `green`, `pink`];
+export const colors = {
+  BLACK: `black`,
+  YELLOW: `yellow`,
+  BLUE: `blue`,
+  GREEN: `green`,
+  PINK: `pink`,
+};
+
+export const COLORS = Object.values(colors);
 
 export const DAYS = [`mo`, `tu`, `we`, `th`, `fr`, `sa`, `su`];
 

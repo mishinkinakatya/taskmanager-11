@@ -1,3 +1,4 @@
+/* eslint-disable valid-jsdoc */
 const castTimeFormat = (value) => {
   return value < 10 ? `0${value}` : String(value);
 };
@@ -19,6 +20,10 @@ const getRandomIntegerNumber = (min, max) => {
   return min + Math.floor(Math.random() * (max - min));
 };
 
+/**
+ * Флаг: Выбран хотя бы один день для повторения?
+ * @param {Array} repeatingDays Массив дней
+ */
 const isRepeating = (repeatingDays) => {
   return Object.values(repeatingDays).some(Boolean);
 };

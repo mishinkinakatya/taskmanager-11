@@ -1,15 +1,7 @@
 /* eslint-disable valid-jsdoc */
 import AbstractSmartComponent from "./abstract-smart-component.js";
 import {COLORS, DAYS, MONTH_NAMES} from "../const.js";
-import {formatTime} from "../utils/common.js";
-
-/**
- * Флаг: Выбран хотя бы один день для повторения?
- * @param {Array} repeatingDays Массив дней
- */
-const isRepeating = (repeatingDays) => {
-  return Object.values(repeatingDays).some(Boolean);
-};
+import {formatTime, isRepeating, isOverdueDate} from "../utils/common.js";
 
 /**
  * Функция для созданя разметки блока с цветами
@@ -72,7 +64,7 @@ const createTaskEditTemplate = (task, options = {}) => {
   const {isDateShowing, isRepeatingTask, activeRepeatingDays, activeColor} = options;
 
   /** Флаг: Срок задачи истек? */
-  const isExpired = dueDate instanceof Date && dueDate < Date.now();
+  const isExpired = dueDate instanceof Date && isOverdueDate(dueDate, Date.now());
   /** Флаг: Кнопку Save блокировать? */
   const isBlockSaveButton = (isDateShowing && isRepeatingTask) || (isRepeatingTask && !isRepeating(activeRepeatingDays));
 
