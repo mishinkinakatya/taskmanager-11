@@ -93,7 +93,7 @@ export default class TaskController {
       const data = this._taskEditComponent.getData();
       this._onDataChange(this, task, data);
     });
-    this._taskEditComponent.setDeleteButtonClockHandler(() => this._onDataChange(this, task, null));
+    this._taskEditComponent.setDeleteButtonClickHandler(() => this._onDataChange(this, task, null));
 
     switch (mode) {
       case Mode.DEFAULT:

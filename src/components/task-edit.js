@@ -270,7 +270,7 @@ export default class TaskEdit extends AbstractSmartComponent {
    * Метод установки обработчика для кнопки Delete
    * @param {*} handler Обработчик для кнопки Delete
    */
-  setDeleteButtonClockHandler(handler) {
+  setDeleteButtonClickHandler(handler) {
     this.getElement().querySelector(`.card__delete`).addEventListener(`click`, handler);
 
     this._deleteButtonClickHandler = handler;
