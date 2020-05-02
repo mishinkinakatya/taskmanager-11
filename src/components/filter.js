@@ -1,5 +1,21 @@
+/* eslint-disable valid-jsdoc */
 import AbstractComponent from "./abstract-component.js";
 
+const FILTER_ID_PREFIX = `filter__`;
+
+/**
+ * Функция для получения имени фильтра по его id
+ * @param {String} id id фильтра
+ */
+const getFilterNameById = (id) => {
+  return id.substring(FILTER_ID_PREFIX.length);
+};
+
+/**
+ * Функция для создания разметки одного фильтра
+ * @param {String} filter Название фильтра
+ * @param {Boolean} isChecked Флаг: Фильтр выбран?
+ */
 const createFilterMarkup = (filter, isChecked) => {
   const {name, count} = filter;
 
@@ -16,21 +32,44 @@ const createFilterMarkup = (filter, isChecked) => {
   >`;
 };
 
+/**
+ * Функция для создания разметки блока с фильтрами
+ * @param {Array} filters Массив фильтров
+ */
 const createFilterTemplate = (filters) => {
-  const filtersMarkup = filters.map((it, i) => createFilterMarkup(it, i === 0)).join(`\n`);
+  const filtersMarkup = filters.map((it) => createFilterMarkup(it, it.isChecked)).join(`\n`);
 
   return `<section class="main__filter filter container">
     ${filtersMarkup}
   </section>`;
 };
 
+/** Компонент: Блок фильтров */
 export default class Filter extends AbstractComponent {
+  /**
+   * Конструктор компонента "Блок фильтров"
+   * @param {*} filters Массив фильтров
+   */
   constructor(filters) {
     super();
+
+    /** Свойство компонента: Текущий массив фильтров */
     this._filters = filters;
   }
 
+  /** Метод, который возвращает разметку блока с фильтрами */
   getTemplate() {
     return createFilterTemplate(this._filters);
+  }
+
+  /**
+   * Метод для установки обработчика событий на клик по типу фильтра
+   * @param {*} handler Функция, которая будет вызвана при изменении типа фильтра
+   */
+  setFilterChangeHandler(handler) {
+    this.getElement().addEventListener(`change`, (evt) => {
+      const filterName = getFilterNameById(evt.target.id);
+      handler(filterName);
+    });
   }
 }

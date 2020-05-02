@@ -1,14 +1,19 @@
 /* eslint-disable valid-jsdoc */
 import AbstractSmartComponent from "./abstract-smart-component.js";
 import {COLORS, DAYS, MONTH_NAMES} from "../const.js";
-import {formatTime} from "../utils/common.js";
+import {formatTime, isRepeating, isOverdueDate} from "../utils/common.js";
+
+const MIN_DESCRIPTION_LENGTH = 1;
+const MAX_DESCRIPTION_LENGTH = 140;
 
 /**
- * Флаг: Выбран хотя бы один день для повторения?
- * @param {Array} repeatingDays Массив дней
+ * Функция, которая проверяет, что длина description удолетворяет формату
+ * @param {String} description description задачи
  */
-const isRepeating = (repeatingDays) => {
-  return Object.values(repeatingDays).some(Boolean);
+const isAllowableDescriptionLength = (description) => {
+  const length = description.length;
+
+  return length >= MIN_DESCRIPTION_LENGTH && length < MAX_DESCRIPTION_LENGTH;
 };
 
 /**
@@ -68,13 +73,13 @@ const createRepeatingDaysMarkup = (days, repeatingDays) => {
  * @param {*} options Опции карточки, которые влияют на перерисовку карточки
  */
 const createTaskEditTemplate = (task, options = {}) => {
-  const {description, dueDate} = task;
-  const {isDateShowing, isRepeatingTask, activeRepeatingDays, activeColor} = options;
+  const {dueDate} = task;
+  const {isDateShowing, isRepeatingTask, activeRepeatingDays, activeColor, currenDescription: description} = options;
 
   /** Флаг: Срок задачи истек? */
-  const isExpired = dueDate instanceof Date && dueDate < Date.now();
+  const isExpired = dueDate instanceof Date && isOverdueDate(dueDate, Date.now());
   /** Флаг: Кнопку Save блокировать? */
-  const isBlockSaveButton = (isDateShowing && isRepeatingTask) || (isRepeatingTask && !isRepeating(activeRepeatingDays));
+  const isBlockSaveButton = (isDateShowing && isRepeatingTask) || (isRepeatingTask && !isRepeating(activeRepeatingDays)) || !isAllowableDescriptionLength(description);
 
   /** Дата выполнения задачи */
   const date = (isDateShowing && dueDate) ? `${dueDate.getDate()} ${MONTH_NAMES[dueDate.getMonth()]}` : ``;
@@ -162,6 +167,28 @@ const createTaskEditTemplate = (task, options = {}) => {
   );
 };
 
+/**
+ * Метод, который из разметки собирает данные и возвращает объект со свойствами карточки
+ * @param {*} formData разметка одной карточки
+ */
+const parseFormData = (formData) => {
+  const repeatingDays = DAYS.reduce((acc, day) => {
+    acc[day] = false;
+    return acc;
+  }, {});
+  const date = formData.get(`date`);
+
+  return {
+    description: formData.get(`text`),
+    color: formData.get(`color`),
+    dueDate: date ? new Date(date) : null,
+    repeatingDays: formData.getAll(`repeat`).reduce((acc, it) => {
+      acc[it] = true;
+      return acc;
+    }, repeatingDays),
+  };
+};
+
 /** Компонент: Карточка редактирования */
 export default class TaskEdit extends AbstractSmartComponent {
   /**
@@ -178,10 +205,14 @@ export default class TaskEdit extends AbstractSmartComponent {
     this._isRepeatingTask = Object.values(task.repeatingDays).some(Boolean);
     /** Свойство компонента: Объект, содержащий повторяющиеся дни */
     this._activeRepeatingDays = Object.assign({}, task.repeatingDays);
+    /** Свойство компонента: Объект, содержащий текущий description */
+    this._currentDescription = task.description;
     /** Свойство компонента: Цвет задачи */
     this._activeColor = task.color;
     /** Свойство компонента: Обработчик для кнопки Save */
     this._submitHandler = null;
+    /** Свойство компонента: Обработчик для кнопки Delete */
+    this._deleteButtonClickHandler = null;
 
     /** Свойство компонента: Метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites */
     this._subscribeOnEvents();
@@ -194,16 +225,15 @@ export default class TaskEdit extends AbstractSmartComponent {
       isRepeatingTask: this._isRepeatingTask,
       activeRepeatingDays: this._activeRepeatingDays,
       activeColor: this._activeColor,
+      currenDescription: this._currentDescription,
     });
   }
 
+  /** Метод, который перенавешивает слушателей */
   recoveryListeners() {
     this.setSubmitHandler(this._submitHandler);
+    this.setDeleteButtonClickHandler(this._deleteButtonClickHandler);
     this._subscribeOnEvents();
-  }
-
-  rerender() {
-    super.rerender();
   }
 
   /** Сбросить изменения в карточке */
@@ -218,6 +248,14 @@ export default class TaskEdit extends AbstractSmartComponent {
     this.rerender();
   }
 
+  /** Метод для получения данных из карточки */
+  getData() {
+    const form = this.getElement().querySelector(`.card__form`);
+    const formData = new FormData(form);
+
+    return parseFormData(formData);
+  }
+
   /**
    * Метод установки обработчика для кнопки Save
    * @param {*} handler Обработчик для кнопки Save
@@ -228,7 +266,17 @@ export default class TaskEdit extends AbstractSmartComponent {
     this._submitHandler = handler;
   }
 
-  /** Приватный метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites */
+  /**
+   * Метод установки обработчика для кнопки Delete
+   * @param {*} handler Обработчик для кнопки Delete
+   */
+  setDeleteButtonClickHandler(handler) {
+    this.getElement().querySelector(`.card__delete`).addEventListener(`click`, handler);
+
+    this._deleteButtonClickHandler = handler;
+  }
+
+  /** Приватный метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites, изменение description и color */
   _subscribeOnEvents() {
     const element = this.getElement();
 
@@ -236,6 +284,13 @@ export default class TaskEdit extends AbstractSmartComponent {
       this._isDateShowing = !this._isDateShowing;
 
       this.rerender();
+    });
+
+    element.querySelector(`.card__text`). addEventListener(`input`, (evt) => {
+      this._currentDescription = evt.target.value;
+
+      const saveButton = this.getElement().querySelector(`.card__save`);
+      saveButton.disabled = !isAllowableDescriptionLength(this._currentDescription);
     });
 
     element.querySelector(`.card__repeat-toggle`).addEventListener(`click`, () => {

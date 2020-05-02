@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import AbstractComponent from "./abstract-component.js";
-import {formatTime} from "../utils/common.js";
+import {formatTime, isOverdueDate} from "../utils/common.js";
 import {MONTH_NAMES} from "../const.js";
 
 /**
@@ -24,7 +24,7 @@ const createTaskTemplate = (task) => {
   const {description, dueDate, color, repeatingDays, isArchive, isFavorite} = task;
 
   /** Флаг: Срок задачи истек? */
-  const isExpired = dueDate instanceof Date && dueDate < Date.now();
+  const isExpired = dueDate instanceof Date && isOverdueDate(dueDate, Date.now());
   /** Флаг: Дата показана? */
   const isDateShowing = !!dueDate;
 
