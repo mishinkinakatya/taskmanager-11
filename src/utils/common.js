@@ -1,13 +1,12 @@
 /* eslint-disable valid-jsdoc */
-const castTimeFormat = (value) => {
-  return value < 10 ? `0${value}` : String(value);
-};
+import moment from "moment";
 
 const formatTime = (date) => {
-  const hours = castTimeFormat(date.getHours() % 24);
-  const minutes = castTimeFormat(date.getMinutes());
+  return moment(date).format(`hh:mm`);
+};
 
-  return `${hours}:${minutes}`;
+const formatDate = (date) => {
+  return moment(date).format(`DD MMMM`);
 };
 
 const generateRandomArrayItem = (array) => {
@@ -41,4 +40,4 @@ const isOneDay = (dateA, dateB) => {
   return diff === 0 && dateA.getDate() === dateB.getDate();
 };
 
-export {formatTime, generateRandomArrayItem, getRandomIntegerNumber, isRepeating, isOverdueDate, isOneDay};
+export {formatTime, formatDate, generateRandomArrayItem, getRandomIntegerNumber, isRepeating, isOverdueDate, isOneDay};

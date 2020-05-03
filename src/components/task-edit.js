@@ -1,7 +1,11 @@
 /* eslint-disable valid-jsdoc */
 import AbstractSmartComponent from "./abstract-smart-component.js";
-import {COLORS, DAYS, MONTH_NAMES} from "../const.js";
-import {formatTime, isRepeating, isOverdueDate} from "../utils/common.js";
+import {COLORS, DAYS} from "../const.js";
+import {formatTime, formatDate, isRepeating, isOverdueDate} from "../utils/common.js";
+import flatpickr from "flatpickr";
+
+import "flatpickr/dist/flatpickr.min.css";
+
 import {encode} from "he";
 
 const MIN_DESCRIPTION_LENGTH = 1;
@@ -85,7 +89,7 @@ const createTaskEditTemplate = (task, options = {}) => {
   const isBlockSaveButton = (isDateShowing && isRepeatingTask) || (isRepeatingTask && !isRepeating(activeRepeatingDays)) || !isAllowableDescriptionLength(description);
 
   /** Дата выполнения задачи */
-  const date = (isDateShowing && dueDate) ? `${dueDate.getDate()} ${MONTH_NAMES[dueDate.getMonth()]}` : ``;
+  const date = (isDateShowing && dueDate) ? formatDate(dueDate) : ``;
   /** Время выполнения задачи */
   const time = (isDateShowing && dueDate) ? formatTime(dueDate) : ``;
 
@@ -216,7 +220,10 @@ export default class TaskEdit extends AbstractSmartComponent {
     this._submitHandler = null;
     /** Свойство компонента: Обработчик для кнопки Delete */
     this._deleteButtonClickHandler = null;
-
+    /** Свойство компонента: flatpickr */
+    this._flatpickr = null;
+    /** Свойство компонента: добавить flatpickr */
+    this._applyFlatpickr();
     /** Свойство компонента: Метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites */
     this._subscribeOnEvents();
   }
@@ -230,6 +237,14 @@ export default class TaskEdit extends AbstractSmartComponent {
       activeColor: this._activeColor,
       currentDescription: this._currentDescription,
     });
+  }
+
+  removeElement() {
+    super.removeElement();
+    if (this._flatpickr) {
+      this._flatpickr.destroy();
+      this._flatpickr = null;
+    }
   }
 
   /** Метод, который перенавешивает слушателей */
@@ -249,6 +264,11 @@ export default class TaskEdit extends AbstractSmartComponent {
     this._activeColor = task.color;
 
     this.rerender();
+  }
+
+  rerender() {
+    super.rerender();
+    this._applyFlatpickr();
   }
 
   /** Метод для получения данных из карточки */
@@ -279,6 +299,23 @@ export default class TaskEdit extends AbstractSmartComponent {
     this._deleteButtonClickHandler = handler;
   }
 
+  /** Приватный метод для добавления flatpickr */
+  _applyFlatpickr() {
+    if (this._flatpickr) {
+      this._flatpickr.destroy();
+      this._flatpickr = null;
+    }
+
+    if (this._isDateShowing) {
+      const dateElement = this.getElement().querySelector(`.card__date`);
+      this._flatpickr = flatpickr(dateElement, {
+        altInput: true,
+        allowInput: true,
+        defaultDate: this._task.dueDate || `today`,
+      });
+    }
+  }
+
   /** Приватный метод для того, чтобы подписаться на кнопки Edit, Archive, Favorites, изменение description и color */
   _subscribeOnEvents() {
     const element = this.getElement();
@@ -289,7 +326,7 @@ export default class TaskEdit extends AbstractSmartComponent {
       this.rerender();
     });
 
-    element.querySelector(`.card__text`). addEventListener(`input`, (evt) => {
+    element.querySelector(`.card__text`).addEventListener(`input`, (evt) => {
       this._currentDescription = evt.target.value;
 
       const saveButton = this.getElement().querySelector(`.card__save`);

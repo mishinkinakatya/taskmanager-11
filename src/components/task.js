@@ -1,7 +1,6 @@
 /* eslint-disable valid-jsdoc */
 import AbstractComponent from "./abstract-component.js";
-import {formatTime, isOverdueDate} from "../utils/common.js";
-import {MONTH_NAMES} from "../const.js";
+import {formatTime, formatDate, isOverdueDate} from "../utils/common.js";
 import {encode} from "he";
 
 /**
@@ -30,7 +29,7 @@ const createTaskTemplate = (task) => {
   const isDateShowing = !!dueDate;
 
   /** Дата выполнения задачи */
-  const date = isDateShowing ? `${dueDate.getDate()} ${MONTH_NAMES[dueDate.getMonth()]}` : ``;
+  const date = isDateShowing ? formatDate(dueDate) : ``;
   /** Время выполнения задачи */
   const time = isDateShowing ? formatTime(dueDate) : ``;
   const description = encode(notSanitizedDescription);
