@@ -37,18 +37,9 @@ export default class FilterController {
     /** Массив всех задач. полученный из модели */
     const allTasks = this._taskModel.getTasksAll();
 
-    const filters = Object.values(FilterType).map((filterType) => {
-      return {
-        name: filterType,
-        count: getTasksByFilter(allTasks, filterType).length,
-        checked: filterType === this._activeFilterType,
-      };
-    });
-
     const oldComponent = this._filterComponent;
 
-    this._filterComponent = new FilterComponent(filters);
-    this._filterComponent.setFilterChangeHandler(this._onFilterChange);
+    this._filterComponent = this._getFilterComponent(allTasks);
 
     if (oldComponent) {
       replace(this._filterComponent, oldComponent);
@@ -59,11 +50,30 @@ export default class FilterController {
   }
 
   /**
+   * @return {*} Приватный метод, который возвращает компонент Блок фильтров и устанавливает на него обработчик
+   * @param {*} allTasks Массив задач, к которым применяется фильтрация
+   */
+  _getFilterComponent(allTasks) {
+    const filters = Object.values(FilterType).map((filterType) => {
+      return {
+        name: filterType,
+        count: getTasksByFilter(allTasks, filterType).length,
+        checked: filterType === this._activeFilterType,
+      };
+    });
+
+    this._filterComponent = new FilterComponent(filters);
+    this._filterComponent.setFilterChangeHandler(this._onFilterChange);
+
+    return this._filterComponent;
+  }
+
+  /**
    * Приватный метод, который перерисовывает задачи при изменении типа фильтрации
    * @param {String} filterType Тип фильтрации
    */
   _onFilterChange(filterType) {
-    this._taskModel.setFilter(filterType);
+    this._taskModel.setFilterType(filterType);
     this._activeFilterType = filterType;
   }
 

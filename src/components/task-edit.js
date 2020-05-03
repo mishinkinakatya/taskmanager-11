@@ -2,6 +2,7 @@
 import AbstractSmartComponent from "./abstract-smart-component.js";
 import {COLORS, DAYS, MONTH_NAMES} from "../const.js";
 import {formatTime, isRepeating, isOverdueDate} from "../utils/common.js";
+import {encode} from "he";
 
 const MIN_DESCRIPTION_LENGTH = 1;
 const MAX_DESCRIPTION_LENGTH = 140;
@@ -74,7 +75,9 @@ const createRepeatingDaysMarkup = (days, repeatingDays) => {
  */
 const createTaskEditTemplate = (task, options = {}) => {
   const {dueDate} = task;
-  const {isDateShowing, isRepeatingTask, activeRepeatingDays, activeColor, currenDescription: description} = options;
+  const {isDateShowing, isRepeatingTask, activeRepeatingDays, activeColor, currentDescription} = options;
+
+  const description = encode(currentDescription);
 
   /** Флаг: Срок задачи истек? */
   const isExpired = dueDate instanceof Date && isOverdueDate(dueDate, Date.now());
@@ -225,7 +228,7 @@ export default class TaskEdit extends AbstractSmartComponent {
       isRepeatingTask: this._isRepeatingTask,
       activeRepeatingDays: this._activeRepeatingDays,
       activeColor: this._activeColor,
-      currenDescription: this._currentDescription,
+      currentDescription: this._currentDescription,
     });
   }
 

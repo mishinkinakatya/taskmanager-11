@@ -37,10 +37,10 @@ export default class Tasks {
   }
 
   /**
-   * Метод, который позволит подписываться на изменение фильтра
+   * Метод, который задает значение фильтра и вызывает колбэки при его изменении
    * @param {String} FilterType Тип фильтра
    */
-  setFilter(filterType) {
+  setFilterType(filterType) {
     this._activeFilterType = filterType;
     this._callHandlers(this._filterChangeHandlers);
   }
